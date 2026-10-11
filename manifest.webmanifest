@@ -1,0 +1,32 @@
+{
+  "id": "./",
+  "name": "HomeHub",
+  "short_name": "HomeHub",
+  "description": "Your private home organiser",
+  "lang": "en-GB",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#0d1626",
+  "theme_color": "#0d1626",
+  "icons": [
+    {
+      "src": "icons/homehub-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/homehub-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/homehub-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
