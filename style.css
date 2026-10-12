@@ -8,3 +8,39 @@
 html{background:#0d1626;-webkit-text-size-adjust:100%}body{min-height:100svh;padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}header{height:auto;min-height:76px;gap:12px;padding-left:max(16px,env(safe-area-inset-left),calc((100vw - 1050px)/2));padding-right:max(16px,env(safe-area-inset-right),calc((100vw - 1050px)/2))}main{padding-left:max(15px,env(safe-area-inset-left));padding-right:max(15px,env(safe-area-inset-right))}#launchScreen{position:fixed;inset:0;z-index:20;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(circle at center,#1b3544,#0d1626 65%)}#launchScreen img{border-radius:24px}#launchScreen strong{font-size:34px;letter-spacing:-.04em}#launchScreen span{color:#aebdd0}#installHelp{border:1px solid #2d4056;border-radius:12px;padding:12px 16px;margin-bottom:18px;color:#aebdd0;font-size:14px}summary{cursor:pointer;min-height:24px;color:#75d6bd}#connectionStatus,#updateNotice{padding:12px;border:1px solid #bba776;border-radius:10px}#toast{bottom:calc(20px + env(safe-area-inset-bottom))}dialog{max-height:calc(100dvh - 40px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}@media(max-width:600px){.welcome>button{width:100%}.actions>button{flex:1}.brand{font-size:23px}.panel{margin-top:20px}.stats strong{line-height:1}nav{scroll-padding-inline:10px}}@media(display-mode:standalone){header{background:#0d1626}main{padding-top:20px}}
 
 .documentItem{background:#162438;border:1px solid #2b4057;border-radius:14px;padding:18px;overflow-wrap:anywhere}.documentItem p{margin:8px 0}.documentItem .actions button{min-width:100px}input[type=file]{max-width:100%;padding:10px}nav{scrollbar-width:thin}summary{padding:6px 0;min-height:44px}
+
+
+/* Personal Calendar responsive layout */
+#calendarArea,#notificationsArea{min-width:0;max-width:100%;overflow-wrap:anywhere}
+.calendarToolbar,.calendarViews{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:14px 0}
+.calendarToolbar button,.calendarViews button{flex:0 0 auto}
+.calendarViews select{width:auto;max-width:100%;flex:1 1 180px;margin:0}
+.calendarViews button.active{background:#69c5ae;color:#102436}
+.calendarGrid{display:grid;min-width:0;gap:5px;margin:14px 0 24px}
+.calendarGrid.month,.calendarGrid.week{grid-template-columns:repeat(7,minmax(0,1fr))}
+.calendarGrid.day{grid-template-columns:minmax(0,1fr)}
+.calendarGrid .weekday{text-align:center;color:#b9c9d9;font-size:12px;font-weight:700;padding:8px 0}
+.calendarCell{min-width:0;min-height:90px;padding:6px;background:#162438;border:1px solid #2b4057;border-radius:10px;overflow:hidden}
+.calendarCell.outside{opacity:.5}
+.calendarCell.today{border-color:#69c5ae}
+.calendarCell .dayNumber{min-height:32px;padding:5px 7px;background:transparent;color:#eaf0f9;border-radius:8px;font-size:13px}
+.calendarCell.today .dayNumber{background:#69c5ae;color:#102436}
+.calendarCell .calendarEvent{display:block;width:100%;min-height:28px;margin-top:4px;padding:5px;text-align:left;font-size:11px;font-weight:600;line-height:1.3;white-space:normal;overflow-wrap:anywhere;background:#294359;color:#eaf0f9;border-radius:6px}
+.calendarGrid.day .calendarCell{min-height:140px}
+.calendarGrid.day .calendarEvent{font-size:14px}
+.calendarAgenda{margin:20px 0}
+.calendarAgenda .item{margin:8px 0}
+#calendarEditor{width:min(94vw,560px)}
+#calendarEditor label{overflow-wrap:anywhere}
+#calendarEditor .check input,#reminderPreferences .check input{width:auto}
+.preferenceRow{border:1px solid #385069;border-radius:12px;margin:14px 0;padding:12px;min-width:0}
+.preferenceRow legend{padding:0 8px;color:#eaf0f9;font-weight:700}
+@media(max-width:600px){
+ .calendarToolbar{gap:6px}
+ .calendarToolbar button{padding:10px;min-width:44px}
+ .calendarGrid{gap:3px}
+ .calendarCell{min-height:66px;padding:2px;border-radius:7px}
+ .calendarGrid .weekday{font-size:11px}
+ .calendarCell .dayNumber{min-height:29px;padding:3px;font-size:12px}
+ .calendarCell .calendarEvent{font-size:9px;padding:3px}
+}
