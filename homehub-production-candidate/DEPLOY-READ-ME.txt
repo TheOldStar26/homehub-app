@@ -1,0 +1,2 @@
+PRODUCTION CANDIDATE - NOT YET DEPLOYED.
+Do not overwrite main or deploy until production calendar SQL migration is reviewed and applied, UI smoke-tested, and service worker/cache behaviour verified. Push delivery is not enabled.
