@@ -15,12 +15,16 @@ export class Notifications{
   if(this.repository.mock){await this.repository.setNotifications(true);return 'Mock notifications enabled. No permission requested and no remote subscription created.';}
   if(!('Notification' in window)||!('serviceWorker' in navigator)||!('PushManager' in window))throw Error('Push notifications are unavailable. On iPhone, install HomeHub on the Home Screen and open it there.');
   const ios=/iPad|iPhone|iPod/.test(navigator.userAgent||'')||(/Mac/.test(navigator.userAgent||'')&&navigator.maxTouchPoints>1);
-  if(ios&&!navigator.standalone&&!window.matchMedia?.('(display-mode: standalone)').matches)throw Error('On iPhone, add this development app to the Home Screen, then open it there to enable notifications.');
-  if(!this.invoke||!this.vapidPublicKey)throw Error('The development push backend is not configured.');
+  if(ios&&!navigator.standalone&&!window.matchMedia?.('(display-mode: standalone)').matches)throw Error('On iPhone, add HomeHub to the Home Screen, then open it there to enable notifications.');
+  if(!this.invoke||!this.vapidPublicKey)throw Error('The HomeHub push backend is not configured.');
   const permission=await Notification.requestPermission();if(permission!=='granted')throw Error('Notifications were not allowed. You can change this in device settings.');
   const reg=await this.worker(true);
-  const subscription=await reg.pushManager.getSubscription()||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:bytes(this.vapidPublicKey)});
-  try{await this.invoke({action:'subscribe',subscription:subscription.toJSON()});await this.repository.setNotifications(true);}catch(e){try{await this.invoke({action:'unsubscribe',endpoint:subscription.endpoint});}catch{}await subscription.unsubscribe();throw e;}
+  const existing=await reg.pushManager.getSubscription();
+  const expected=bytes(this.vapidPublicKey), registered=existing?.options?.applicationServerKey;
+  if(registered){const actual=new Uint8Array(registered);if(actual.length!==expected.length||actual.some((v,i)=>v!==expected[i]))throw Error('This device uses an older notification key. Disable notifications on this device, then enable them again.');}
+  const subscription=existing||await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:expected});
+  // A temporary registration failure must not revoke an existing working device.
+  try{await this.invoke({action:'subscribe',subscription:subscription.toJSON()});await this.repository.setNotifications(true);}catch(e){if(!existing){try{await this.invoke({action:'unsubscribe',endpoint:subscription.endpoint});}catch{}await subscription.unsubscribe();}throw e;}
   return 'Notifications enabled for this device.';
  }
  async disable(){

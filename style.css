@@ -44,3 +44,5 @@ html{background:#0d1626;-webkit-text-size-adjust:100%}body{min-height:100svh;pad
  .calendarCell .dayNumber{min-height:29px;padding:3px;font-size:12px}
  .calendarCell .calendarEvent{font-size:9px;padding:3px}
 }
+
+.eventReminders{border:1px solid #385069;border-radius:12px;padding:12px;margin:16px 0;min-width:0}.eventReminders legend{font-weight:700;color:#75d6bd}.reminderPresets{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 12px}.reminderPresets .check{min-height:44px;margin:4px 0}#toast{pointer-events:none}

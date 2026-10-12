@@ -91,10 +91,17 @@ export async function mountCalendar(repository, notificationOptions = {}) {
     field('until', 'Repeat until (optional)', 'date');
     const repeatHint = el('p', 'Editing or deleting a recurring event changes the whole series. Months without the chosen day are skipped. Repeated autumn times use the first occurrence.', 'muted');
     form.append(repeatHint);
-    field('reminder', 'Reminder', 'select', [['default', 'Category default'], ['off', 'Off'], ['custom', 'Custom reminders…'], ['0', 'At event time'], ['15', '15 minutes before'], ['30', '30 minutes before'], ['60', '1 hour before'], ['1440', '1 day before'], ['10080', '1 week before']]);
+    field('reminder', 'Reminders', 'select', [['default', 'Category default'], ['off', 'Off'], ['custom', 'Custom reminders…'], ['0', 'At event time'], ['5', '5 minutes before'], ['10', '10 minutes before'], ['15', '15 minutes before'], ['30', '30 minutes before'], ['60', '1 hour before'], ['1440', '1 day before'], ['10080', '1 week before']]);
     field('reminder_offsets', 'Custom reminders (comma-separated offsets)');
     const hint = el('p', undefined, 'muted');
     form.append(hint);
+    const reminderGroup = el('fieldset', undefined, 'eventReminders');
+    reminderGroup.id = 'eventReminderSettings';
+    reminderGroup.append(el('legend', 'Event reminders'));
+    const multiple = button('Choose multiple reminders', () => { fields.reminder.value = 'custom'; reminderControls(); });
+    const presets = el('div', undefined, 'reminderPresets');
+    reminderGroup.append(fields.reminder.parentElement, multiple, presets, fields.reminder_offsets.parentElement, hint);
+    form.insertBefore(reminderGroup, fields.timezone.parentElement);
     field('notes', 'Notes', 'textarea');
     fields.notes.maxLength = 2000;
     const actions = el('div', undefined, 'actions'), save = el('button', 'Save event'), remove = button('Delete event', async () => { if (!confirm('Delete this event' + (editing?.recurrence !== 'none' ? ' and its entire series' : '') + '?'))
@@ -108,6 +115,23 @@ export async function mountCalendar(repository, notificationOptions = {}) {
         const all = fields.all_day.checked, p = prefs[fields.category.value];
         fields.reminder_offsets.parentElement.hidden = fields.reminder.value !== 'custom';
         fields.reminder_offsets.parentElement.firstChild.textContent = all ? 'Custom reminders: days before (comma-separated)' : 'Custom reminders: minutes before (comma-separated)';
+        presets.hidden = fields.reminder.value !== 'custom';
+        presets.replaceChildren();
+        const options = all ? [[0,'Same day at 9am'],[1,'1 day before'],[3,'3 days before'],[7,'1 week before']] : [[0,'At time of event'],[5,'5 minutes'],[10,'10 minutes'],[15,'15 minutes'],[30,'30 minutes'],[60,'1 hour'],[720,'12 hours'],[1440,'1 day']];
+        const selected = fields.reminder_offsets.value.split(',').map(x => x.trim()).filter(Boolean).map(Number);
+        for (const [offset, text] of options) {
+            const wrap = el('label', undefined, 'check'), input = el('input');
+            input.type = 'checkbox'; input.value = String(offset); input.checked = selected.includes(offset);
+            input.onchange = () => {
+                try {
+                    let offsets = parseOffsets(fields.reminder_offsets.value, all ? 365 : 525600);
+                    offsets = input.checked ? [...new Set([...offsets, offset])] : offsets.filter(x => x !== offset);
+                    fields.reminder_offsets.value = offsets.sort((a,b) => b-a).join(', ');
+                    error.hidden = true;
+                } catch (e) { input.checked = !input.checked; error.textContent = e.message; error.hidden = false; }
+            };
+            wrap.append(input, document.createTextNode(text)); presets.append(wrap);
+        }
         const values = all ? p.days : p.minutes;
         hint.textContent = (all ? 'All reminders use 9am local time. 0 means the event day. ' : '0 means the event start time. ') + `Category defaults: ${p.enabled && values.length ? values.join(', ') + (all ? ' days' : ' minutes') + ' before' : 'disabled'}. Blank custom offsets disable this event’s reminders.`;
     }
@@ -120,7 +144,7 @@ export async function mountCalendar(repository, notificationOptions = {}) {
         fields.end_date.parentElement.firstChild.textContent = all ? 'End date (last day included)' : 'End date';
         const selected = fields.reminder.value;
         fields.reminder.replaceChildren();
-        const choices = all ? [['default', 'Category defaults'], ['off', 'Off'], ['custom', 'Custom reminders…'], ['0', 'Same day at 9am'], ['1', '1 day before at 9am'], ['3', '3 days before at 9am'], ['7', '1 week before at 9am'], ['30', '30 days before at 9am']] : [['default', 'Category defaults'], ['off', 'Off'], ['custom', 'Custom reminders…'], ['0', 'At event time'], ['15', '15 minutes before'], ['30', '30 minutes before'], ['60', '1 hour before'], ['720', '12 hours before'], ['1440', '1 day before'], ['4320', '3 days before'], ['10080', '1 week before'], ['43200', '30 days before']];
+        const choices = all ? [['default', 'Category defaults'], ['off', 'Off'], ['custom', 'Custom reminders…'], ['0', 'Same day at 9am'], ['1', '1 day before at 9am'], ['3', '3 days before at 9am'], ['7', '1 week before at 9am'], ['30', '30 days before at 9am']] : [['default', 'Category defaults'], ['off', 'Off'], ['custom', 'Custom reminders…'], ['0', 'At event time'], ['5', '5 minutes before'], ['10', '10 minutes before'], ['15', '15 minutes before'], ['30', '30 minutes before'], ['60', '1 hour before'], ['720', '12 hours before'], ['1440', '1 day before'], ['4320', '3 days before'], ['10080', '1 week before'], ['43200', '30 days before']];
         for (const [value, text] of choices) {
             const o = el('option', text);
             o.value = value;
@@ -131,7 +155,11 @@ export async function mountCalendar(repository, notificationOptions = {}) {
         fields.until.parentElement.hidden = fields.recurrence.value === 'none';
     }
     fields.all_day.onchange = () => { fields.reminder.value = 'default'; fields.reminder_offsets.value = ''; controls(); };
-    fields.reminder.onchange = reminderControls;
+    fields.reminder.onchange = () => {
+        if (!['default','off','custom'].includes(fields.reminder.value)) fields.reminder_offsets.value = fields.reminder.value;
+        reminderControls();
+    };
+    fields.reminder_offsets.oninput = reminderControls;
     fields.category.onchange = reminderControls;
     fields.recurrence.onchange = () => { fields.until.parentElement.hidden = fields.recurrence.value === 'none'; };
     fields.start_date.onchange = () => { if (fields.end_date.value < fields.start_date.value)
@@ -172,7 +200,7 @@ export async function mountCalendar(repository, notificationOptions = {}) {
         await repository.save({ ...editing, ...data });
         dialog.close();
         await refresh();
-        toast(repository.mock ? 'Event saved in this development browser.' : 'Event saved in your development account.');
+        toast(repository.mock ? 'Event saved in this development browser.' : 'Event saved in your HomeHub account.');
     }
     catch (e) {
         error.textContent = e.message;
