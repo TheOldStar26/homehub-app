@@ -1,0 +1,30 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { JSDOM } from 'jsdom';
+import { agenda, answerCommand, mountTablet } from '../tablet.js';
+const now=new Date('2026-10-12T09:00:00Z');
+const event={id:'1',title:'Dentist',category:'personal',all_day:false,start_date:'2026-10-12',end_date:'2026-10-12',start_time:'11:00',end_time:'12:00',timezone:'Europe/London',recurrence:'weekly',exceptions:[],completed:false};
+test('Calendar recurrence, completed events, exceptions, exclusive all-day end and voice truthfulness',()=>{
+ const birthday={...event,id:'2',title:'Birthday',category:'birthday',all_day:true,start_date:'2025-10-14',end_date:'2025-10-15',recurrence:'yearly'};
+ const data=agenda([event,birthday,{...event,id:'3',completed:true},{...event,id:'4',exceptions:['2026-10-12','2026-10-19']}],now);
+ assert.equal(data.today.length,1);assert.equal(data.upcoming.length,2);assert.equal(data.next.title,'Dentist');
+ assert.match(answerCommand("What's on my calendar today?",data,null,now),/Dentist/);
+ assert.match(answerCommand('What have I got coming up this week?',data,null,now),/Birthday/);
+ assert.match(answerCommand("What's the weather today?",data,null,now),/unavailable/);
+ assert.match(answerCommand("What's my next appointment?",data,null,now),/Dentist/);
+ assert.equal(answerCommand('What time is it?',data,null,now),'It is 10:00.');
+ assert.match(answerCommand('calendar today',null,null,now),/could not be refreshed/);
+ assert.equal(agenda([birthday],new Date('2026-10-15T09:00Z')).today.length,0);
+});
+test('Tablet mounting, unsupported speech, refresh errors and private cleanup',async()=>{
+ const dom=new JSDOM('<div id="app"></div>',{url:'https://example.com'});
+ for(const key of ['window','document','navigator','localStorage'])globalThis[key]=dom.window[key];
+ let fail=false,exited=0;
+ const tablet=mountTablet({list:async()=>{if(fail)throw Error('offline');return [event];},preferences:async()=>({})},()=>exited++);
+ tablet.open();await new Promise(r=>setTimeout(r,10));
+ assert.equal(document.getElementById('tabletMic').disabled,true);assert.equal(document.body.classList.contains('tablet-mode'),true);
+ fail=true;document.getElementById('tabletRefresh').click();await new Promise(r=>setTimeout(r,10));
+ assert.match(document.getElementById('tabletSync').textContent,/unavailable/);
+ document.getElementById('tabletExit').click();assert.equal(document.body.classList.contains('tablet-mode'),false);
+ tablet.destroy();assert.equal(document.getElementById('tabletDashboard'),null);assert.ok(exited);dom.window.close();
+});

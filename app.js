@@ -3,6 +3,7 @@ import { documentsUI } from './documents.js';
 import { mountCalendar } from './calendar/ui.js';
 import { SupabaseCalendarRepository } from './calendar/repository.js';
 import { Notifications } from './calendar/notifications.js';
+import { mountTablet } from './tablet.js';
 import { DEFAULTS } from './calendar/model.js';
 // Existing HomeHub flow with isolated client injection and calendar integration.
 export async function mountHomeHub(db, { mock = false, calendarRepositoryFactory = null, notificationOptions = {} } = {}) {
@@ -11,6 +12,7 @@ export async function mountHomeHub(db, { mock = false, calendarRepositoryFactory
     const EMAIL_REDIRECT_TO = APP_BASE.href;
     const $ = id => document.getElementById(id);
     let user = null, records = [], tab = 'all', generation = 0;
+    let tablet = null;
     let documents = null, calendar = null, calendarOwner = null, disposed = false, sessionSequence = 0, recordBusy = null;
     const pendingLoads = new Set();
     const timers = [];
@@ -24,6 +26,8 @@ export async function mountHomeHub(db, { mock = false, calendarRepositoryFactory
         generation++;
         window.clearTimeout(toastTimer);
         records = [];
+        tablet?.destroy();
+        tablet = null;
         calendar?.destroy();
         calendar = null;
         calendarOwner = null;
@@ -412,6 +416,16 @@ export async function mountHomeHub(db, { mock = false, calendarRepositoryFactory
             list.append(card);
         }
     }
+    const tabletButton = document.createElement('button');
+    tabletButton.textContent = 'Tablet Mode';
+    tabletButton.type = 'button';
+    tabletButton.id = 'tabletMode';
+    $('dashboard').querySelector('.welcome').append(tabletButton);
+    tabletButton.onclick = () => {
+        if (!user) return;
+        if (!tablet) tablet = mountTablet(calendarRepositoryFactory ? calendarRepositoryFactory(user.id) : new SupabaseCalendarRepository(db, user.id), () => tabletButton.focus());
+        tablet.open();
+    };
     await init();
     return { refresh: load, selectTab, state: () => ({ user: user ? { id: user.id, email: user.email } : null, records: structuredClone(records), tab }), destroy() { disposed = true; sessionSequence++; authSubscription?.unsubscribe(); for (const timer of timers)
             window.clearInterval(timer); for (const [type, fn] of windowListeners)
