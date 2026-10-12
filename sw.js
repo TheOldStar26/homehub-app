@@ -1,6 +1,6 @@
 // Static shell only: never intercept Supabase, authenticated requests,
 // callback/query URLs, record APIs, POSTs or unknown resources.
-const CACHE='homehub-app-static-v3';
+const CACHE='homehub-app-static-v4';
 const ROOT=new URL('./',self.location.href);
 const FILES=['','index.html','style.css','app.js','production-app.js','calendar/model.js','calendar/ui.js','calendar/repository.js','calendar/realtime.js','calendar/notifications.js','features.js','documents.js','pwa.js','manifest.webmanifest','vendor/supabase-2.117.3.js','icons/homehub-180.png','icons/homehub-192.png','icons/homehub-512.png','icons/homehub-maskable-512.png','icons/splash-1170x2532.png','icons/splash-1179x2556.png','icons/splash-1290x2796.png'];
 const ALLOWED=new Set(FILES.map(path=>new URL(path,ROOT).href));
@@ -25,3 +25,6 @@ self.addEventListener('fetch',event=>{
   return cached||fetch(event.request);
  })());
 });
+
+self.addEventListener('push',event=>{let data={};try{data=event.data?.json()||{}}catch{}const title=typeof data.title==='string'?data.title:'HomeHub reminder';const body=typeof data.body==='string'?data.body:'You have an upcoming calendar event.';const url=new URL('./',self.location.href);if(typeof data.eventId==='string')url.searchParams.set('event',data.eventId);event.waitUntil(self.registration.showNotification(title,{body,icon:new URL('icons/homehub-192.png',self.location.href).href,tag:typeof data.tag==='string'?data.tag:'homehub-reminder',data:{url:url.href}}))});
+self.addEventListener('notificationclick',event=>{event.notification.close();const url=event.notification.data?.url||new URL('./',self.location.href).href;event.waitUntil((async()=>{const windows=await clients.matchAll({type:'window',includeUncontrolled:true});for(const w of windows){if(w.url.startsWith(new URL('./',self.location.href).href)){await w.navigate(url);return w.focus()}}return clients.openWindow(url)})())});
