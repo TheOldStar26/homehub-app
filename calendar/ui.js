@@ -21,7 +21,7 @@ export async function mountCalendar(repository, notificationOptions = {}) {
     catch (e) {
         toast(e.message);
     } };
-    const syncStatus = el('p', repository.mock ? 'Local demo only: events do not sync between devices.' : 'Development account: changes refresh automatically; deletions refresh within 15 seconds while open.', 'muted');
+    const syncStatus = el('p', repository.mock ? 'Local demo only: events do not sync between devices.' : 'HomeHub account: changes sync across your devices; deletions refresh within 15 seconds while open.', 'muted');
     syncStatus.id = 'calendarSyncStatus';
     syncStatus.setAttribute('role', 'status');
     root.append(syncStatus);
@@ -302,7 +302,7 @@ export async function mountCalendar(repository, notificationOptions = {}) {
         samples.append(el('p', 'No automatic reminders enabled. Choose category defaults or an event reminder.')); }), samples);
     status.textContent = repository.mock ? (repository.data?.notifications ? 'Mock notifications enabled.' : 'Mock mode: notifications disabled. No backend connection.') : 'Use Enable Notifications to enroll this device. Permission is requested only after your tap.';
     if (!repository.mock)
-        pending.textContent = 'Agreed defaults are enabled. Customise or disable reminders below; changes save only to your separate development account.';
+        pending.textContent = 'Agreed defaults are enabled. Customise or disable reminders below; changes save to your HomeHub account.';
     render();
     const link = eventLink(location.href);
     if (link) {
