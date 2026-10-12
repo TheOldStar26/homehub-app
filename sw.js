@@ -1,8 +1,8 @@
 // Static shell only: never intercept Supabase, authenticated requests,
 // callback/query URLs, record APIs, POSTs or unknown resources.
-const CACHE='homehub-app-static-v1';
+const CACHE='homehub-app-static-v2';
 const ROOT=new URL('./',self.location.href);
-const FILES=['','index.html','style.css','app.js','features.js','documents.js','pwa.js','manifest.webmanifest','vendor/supabase-2.117.3.js','icons/homehub-180.png','icons/homehub-192.png','icons/homehub-512.png','icons/homehub-maskable-512.png','icons/splash-1170x2532.png','icons/splash-1179x2556.png','icons/splash-1290x2796.png'];
+const FILES=['','index.html','style.css','app.js','production-app.js','calendar/model.js','calendar/ui.js','calendar/repository.js','calendar/realtime.js','calendar/notifications.js','features.js','documents.js','pwa.js','manifest.webmanifest','vendor/supabase-2.117.3.js','icons/homehub-180.png','icons/homehub-192.png','icons/homehub-512.png','icons/homehub-maskable-512.png','icons/splash-1170x2532.png','icons/splash-1179x2556.png','icons/splash-1290x2796.png'];
 const ALLOWED=new Set(FILES.map(path=>new URL(path,ROOT).href));
 function cacheable(request){
  const url=new URL(request.url);
